@@ -1,0 +1,31 @@
+{
+  "name": "mi-balance-server",
+  "version": "1.0.0",
+  "description": "PWA privada de composición corporal con Better Auth",
+  "private": true,
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.local app/server.js",
+    "migrate": "./node_modules/.bin/auth migrate --yes",
+    "bootstrap": "node --env-file-if-exists=.env.local scripts/bootstrap.js",
+    "build:client": "node scripts/build-client.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@better-auth/passkey": "^1.7.12",
+    "auth": "1.7.12",
+    "better-auth": "^1.7.12",
+    "better-sqlite3": "^12.4.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.4.1": true,
+    "esbuild@0.25.11": true
+  }
+}

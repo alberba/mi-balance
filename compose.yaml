@@ -1,0 +1,27 @@
+services:
+  mi-balance:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: mi-balance
+    restart: unless-stopped
+    env_file:
+      - server/.env
+    user: "1001:1001"
+    ports:
+      - "${BIND_IP:-127.0.0.1}:4322:4322"
+    volumes:
+      - ./private:/data:rw
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4322/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

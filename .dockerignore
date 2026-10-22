@@ -1,0 +1,19 @@
+.git
+.DS_Store
+captures
+data
+docs
+evidence
+server/node_modules
+server/data
+server/private
+server/.env
+server/.env.local
+pwa/seed.json
+tools
+Mi Balance.app
+android
+
+private
+.agents
+.claude

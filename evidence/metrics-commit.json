@@ -1,0 +1,101 @@
+{
+  "sha": "e9db989d21b23602a462338a285478658cbaa137",
+  "node_id": "C_kwDOCYTFDtoAKGU5ZGI5ODlkMjFiMjM2MDJhNDYyMzM4YTI4NTQ3ODY1OGNiYWExMzc",
+  "commit": {
+    "author": {
+      "name": "lolouk44",
+      "email": "laurent.mahe@gmail.com",
+      "date": "2023-01-05T07:33:50Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2023-01-05T07:33:50Z"
+    },
+    "message": "Update Xiaomi_Scale.py",
+    "tree": {
+      "sha": "db97e8cf3e3bf133fc527e9f9772067e26323c15",
+      "url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/git/trees/db97e8cf3e3bf133fc527e9f9772067e26323c15"
+    },
+    "url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/git/commits/e9db989d21b23602a462338a285478658cbaa137",
+    "comment_count": 0,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjtn1eCRBK7hj4Ov3rIwAA2L4IAARZoIp7vgHVTEsI4gL9OcXx\n31jcRpdN/aG3D9MBCXb+zHjHyvv5EwKpi/h3gW7dmIXuLro9Ek/Cf9EklNGKgTRE\nU1ESD1rnW7tbvM7qYBIYaKJL/YyPC8VHU26ui5YLQjcNZ4rgPyyNzgF40ETD0GLd\nT5XlnkpOySa/uz1XI8B1ldC9qZ1DlXQubuU3KKO4SakViu5gi/NwgVec884PfG1X\njRkr9ShC217oHII1CYXSqSo9dQWvqa95+8o6doa2+8u/iYgQ+G52V71K84cHfn88\nrTmwjZE/YgiDX3sJ9kc8+P5TVaKrAl6AwLOGTqgPsKQl5bYzMcvFshTfmP1hh5o=\n=UqBJ\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree db97e8cf3e3bf133fc527e9f9772067e26323c15\nparent 6b87a04dd55022c399e0efb0b4b220e86e95f8f2\nauthor lolouk44 <laurent.mahe@gmail.com> 1672904030 +0000\ncommitter GitHub <noreply@github.com> 1672904030 +0000\n\nUpdate Xiaomi_Scale.py",
+      "verified_at": "2024-11-08T02:25:12Z"
+    }
+  },
+  "url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/commits/e9db989d21b23602a462338a285478658cbaa137",
+  "html_url": "https://github.com/lolouk44/xiaomi_mi_scale/commit/e9db989d21b23602a462338a285478658cbaa137",
+  "comments_url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/commits/e9db989d21b23602a462338a285478658cbaa137/comments",
+  "author": {
+    "login": "lolouk44",
+    "id": 4587746,
+    "node_id": "MDQ6VXNlcjQ1ODc3NDY=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4587746?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/lolouk44",
+    "html_url": "https://github.com/lolouk44",
+    "followers_url": "https://api.github.com/users/lolouk44/followers",
+    "following_url": "https://api.github.com/users/lolouk44/following{/other_user}",
+    "gists_url": "https://api.github.com/users/lolouk44/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/lolouk44/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/lolouk44/subscriptions",
+    "organizations_url": "https://api.github.com/users/lolouk44/orgs",
+    "repos_url": "https://api.github.com/users/lolouk44/repos",
+    "events_url": "https://api.github.com/users/lolouk44/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/lolouk44/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "6b87a04dd55022c399e0efb0b4b220e86e95f8f2",
+      "url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/commits/6b87a04dd55022c399e0efb0b4b220e86e95f8f2",
+      "html_url": "https://github.com/lolouk44/xiaomi_mi_scale/commit/6b87a04dd55022c399e0efb0b4b220e86e95f8f2"
+    }
+  ],
+  "stats": {
+    "total": 2,
+    "additions": 1,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "1797e71e4bfc068cfeabb7367b2cae43e2b6cf9a",
+      "filename": "src/Xiaomi_Scale.py",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/lolouk44/xiaomi_mi_scale/blob/e9db989d21b23602a462338a285478658cbaa137/src%2FXiaomi_Scale.py",
+      "raw_url": "https://github.com/lolouk44/xiaomi_mi_scale/raw/e9db989d21b23602a462338a285478658cbaa137/src%2FXiaomi_Scale.py",
+      "contents_url": "https://api.github.com/repos/lolouk44/xiaomi_mi_scale/contents/src%2FXiaomi_Scale.py?ref=e9db989d21b23602a462338a285478658cbaa137",
+      "patch": "@@ -84,7 +84,7 @@ def MQTT_publish(weight, unit, mitdatetime, hasImpedance, miimpedance):\n \r\n     if hasImpedance:\r\n         lib = Xiaomi_Scale_Body_Metrics.bodyMetrics(calcweight, height, age, sex, int(miimpedance))\r\n-        bodyscale = ['Obese', 'Overweight', 'Thick-set', 'Lack-exerscise', 'Balanced', 'Balanced-muscular', 'Skinny', 'Balanced-skinny', 'Skinny-muscular']\r\n+        bodyscale = ['Obese', 'Overweight', 'Thick-set', 'Lack-exercise', 'Balanced', 'Balanced-muscular', 'Skinny', 'Balanced-skinny', 'Skinny-muscular']\r\n         message += ',\"lean_body_mass\":' + \"{:.2f}\".format(lib.getLBMCoefficient())\r\n         message += ',\"body_fat\":' + \"{:.2f}\".format(lib.getFatPercentage())\r\n         message += ',\"water\":' + \"{:.2f}\".format(lib.getWaterPercentage())\r"
+    }
+  ]
+}

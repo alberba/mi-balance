@@ -1,0 +1,35 @@
+[
+  {
+    "path": "evidence/MiScaleHandler.kt",
+    "sha256": "7f2096030bf175309520d29f77f497421431d13197d0e17e663f68fe535ccb18",
+    "source_url": "https://raw.githubusercontent.com/oliexdev/openScale/master/android_app/app/src/main/java/com/health/openscale/core/bluetooth/scales/MiScaleHandler.kt",
+    "retrieved_at_utc": "2026-10-22T19:54:38.184077+00:00"
+  },
+  {
+    "path": "evidence/esphome-xiaomi-miscale.cpp",
+    "sha256": "339e1238fc527e47686e18ae4bb57b9d55c41a088775a6adcee205401cae30ac",
+    "source_url": "https://raw.githubusercontent.com/esphome/esphome/dev/esphome/components/xiaomi_miscale/xiaomi_miscale.cpp",
+    "retrieved_at_utc": "2026-10-22T19:54:38.184767+00:00"
+  },
+  {
+    "path": "tools/vendor/Xiaomi_Scale_Body_Metrics.py",
+    "sha256": "2d0b4865a1205b341e67df37b95d90e6438cb7187369a87972a65fc0a10e7792",
+    "source_url": "https://raw.githubusercontent.com/lolouk44/xiaomi_mi_scale/e9db989d21b23602a462338a285478658cbaa137/src/Xiaomi_Scale_Body_Metrics.py",
+    "retrieved_date": "2026-10-22",
+    "commit": "e9db989d21b23602a462338a285478658cbaa137"
+  },
+  {
+    "path": "tools/vendor/body_scales.py",
+    "sha256": "34dbf8b64567c8fbdfae343046b895c9fff18e2f17c27c02af70d297946baf65",
+    "source_url": "https://raw.githubusercontent.com/lolouk44/xiaomi_mi_scale/e9db989d21b23602a462338a285478658cbaa137/src/body_scales.py",
+    "retrieved_date": "2026-10-22",
+    "commit": "e9db989d21b23602a462338a285478658cbaa137"
+  },
+  {
+    "path": "tools/vendor/LICENSE",
+    "sha256": "a5f14202484e10055bb7f39506be3a53afc54cbe04ef3e3f719e3597f5249909",
+    "source_url": "https://raw.githubusercontent.com/lolouk44/xiaomi_mi_scale/e9db989d21b23602a462338a285478658cbaa137/LICENSE",
+    "retrieved_date": "2026-10-22",
+    "commit": "e9db989d21b23602a462338a285478658cbaa137"
+  }
+]
