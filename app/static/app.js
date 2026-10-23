@@ -3,6 +3,7 @@
   const els = {
     dot: $("#connection-dot"), connectionLabel: $("#connection-label"), connectionButton: $("#connection-button"),
     status: $("#status-message"), weight: $("#latest-weight"), date: $("#latest-date"), captureState: $("#capture-state"),
+    pageSummary: $("#page-summary"), compositionDate: $("#composition-date"),
     cards: $("#metric-cards"), allMetrics: $("#all-metrics"), history: $("#history-rows"), historyEmpty: $("#history-empty"),
     historyCount: $("#history-count"), chartMetric: $("#chart-metric"), chartPeriod: $("#chart-period"), chartWrap: $("#chart-wrap"), chartSummary: $("#chart-summary"),
     profileForm: $("#profile-form"), profileDetails: $("#profile-details"),
@@ -28,6 +29,7 @@
   let profileDirty = new Set();
   let busy = false;
   let fetchFailed = false;
+  let chartResizeTimer = 0;
   const livePacket = (status) => {
     const packet = status?.last_packet;
     return packet && status.running && Date.now() - new Date(packet.captured_at).getTime() < 15000 ? packet : null;
@@ -59,8 +61,14 @@
   }
   function connection(status) {
     const running = Boolean(status?.running);
+    const phase = status?.phase;
+    const label = phase === "error"
+      ? "Error de conexión"
+      : running
+        ? phase === "measuring" ? "Recibiendo pesada" : phase === "scanning" ? "Buscando báscula" : "Báscula conectada"
+        : "Báscula desconectada";
     els.dot.classList.toggle("is-connected", running);
-    els.connectionLabel.textContent = running ? (status.message || "Báscula conectada") : (status.message || "Báscula desconectada");
+    els.connectionLabel.textContent = label;
     els.connectionButton.textContent = running ? "Desconectar" : "Conectar";
     els.connectionButton.disabled = busy;
   }
@@ -76,17 +84,22 @@
     const amount = `${direction} ${fmt(Math.abs(delta), digits)}${suffix === "%" ? " p.p." : ` ${suffix}`}`;
     return `${amount} frente a la anterior`;
   }
-  function renderCards(measurements) {
+  function renderCards(measurements, status) {
     els.cards.replaceChildren();
-    const latest = measurements[0];
-    const previous = measurements[1];
+    const packet = livePacket(status);
+    const provisional = Boolean(packet && !packet.load_removed && packet.stabilized === false);
+    const latest = provisional ? null : measurements[0];
+    const previous = provisional ? null : measurements[1];
+    els.compositionDate.textContent = provisional
+      ? "Esperando impedancia"
+      : latest ? shortDate(latest.captured_at) : "Sin lectura";
     for (const [key, title, suffix, digits] of metricSpecs.slice(0, 3)) {
       const card = node("article", "metric-card");
-      const header = node("div", "metric-card-top");
-      header.append(node("h3", "", title), node("span", "metric-arrow", "↗"));
       const value = node("p", "metric-value", metricValue(latest?.metrics, key, suffix, digits));
-      const delta = node("p", "metric-delta", deltaText(latest?.metrics?.[key], previous?.metrics?.[key], suffix, digits));
-      card.append(header, value, delta);
+      const delta = node("p", "metric-delta", provisional
+        ? "Pendiente de la lectura estable"
+        : deltaText(latest?.metrics?.[key], previous?.metrics?.[key], suffix, digits));
+      card.append(node("h3", "", title), value, delta);
       els.cards.append(card);
     }
   }
@@ -129,22 +142,27 @@
     els.weight.textContent = fmt(latest.weight_kg, 2);
     els.date.textContent = dateTime(latest.captured_at);
     els.captureState.textContent = captureDescription(latest, status);
+    els.pageSummary.textContent = `Peso y composición de la última pesada · ${shortDate(latest.captured_at)}`;
   }
   function renderHistory(measurements, status) {
     els.history.replaceChildren();
     els.historyCount.textContent = `${measurements.length} ${measurements.length === 1 ? "medición" : "mediciones"}`;
     els.historyEmpty.hidden = measurements.length > 0;
     for (const item of measurements) {
-      const row = document.createElement("tr");
+      const row = node("article", "history-item");
+      const main = node("div", "history-main");
       const reading = item.impedance_ohm == null ? "Sin impedancia" : item.metrics ? "Estimación" : "Con impedancia";
-      row.append(
-        node("td", "date-cell", dateTime(item.captured_at)),
-        node("td", "numeric weight-cell", `${fmt(item.weight_kg, 2)} kg`),
-        node("td", "numeric", metricValue(item.metrics, "body_fat_percent", "%", 1)),
-        node("td", "numeric", metricValue(item.metrics, "muscle_mass_kg", "kg", 1)),
-        node("td", "numeric", metricValue(item.metrics, "water_percent", "%", 1)),
-        node("td", "reading-cell", reading),
-      );
+      main.append(node("time", "history-date", dateTime(item.captured_at)), node("span", "history-kind", reading));
+      const values = node("div", "history-values");
+      const weight = node("span", "history-weight");
+      weight.append(document.createTextNode(fmt(item.weight_kg, 2)), node("span", "weight-unit-small", " kg"));
+      values.append(weight);
+      for (const [key, label, suffix, digits] of [["body_fat_percent", "Grasa", "%", 1], ["muscle_mass_kg", "Músculo", "kg", 1], ["water_percent", "Agua", "%", 1]]) {
+        const metric = node("span", "history-metric");
+        metric.append(node("small", "", label), node("strong", "", metricValue(item.metrics, key, suffix, digits)));
+        values.append(metric);
+      }
+      row.append(main, values);
       els.history.append(row);
     }
   }
@@ -160,12 +178,16 @@
     const labels = { weight_kg: ["Peso", "kg"], body_fat_percent: ["Grasa corporal", "%"], muscle_mass_kg: ["Masa muscular", "kg"], water_percent: ["Agua corporal", "%"] };
     const [name, unit] = labels[spec];
     els.chartWrap.replaceChildren();
-    els.chartSummary.textContent = data.length === 0 ? `No hay capturas de ${name.toLowerCase()} en este periodo.` : `${data.length} ${data.length === 1 ? "captura" : "capturas"} de ${name.toLowerCase()} · ${fmt(data[0].value, 1)}–${fmt(data[data.length - 1].value, 1)} ${unit}`;
+    els.chartSummary.textContent = data.length === 0
+      ? `No hay capturas de ${name.toLowerCase()} en este periodo.`
+      : `${data.length} ${data.length === 1 ? "captura" : "capturas"} de ${name.toLowerCase()} · ${fmt(data[0].value, 1)}–${fmt(data[data.length - 1].value, 1)} ${unit}`;
     if (!data.length) {
       els.chartWrap.append(node("p", "chart-empty", "Cuando tengas mediciones, aquí aparecerá tu evolución."));
       return;
     }
-    const width = 760, height = 300, pad = { top: 22, right: 22, bottom: 45, left: 58 };
+    const width = Math.round(Math.max(260, Math.min(760, els.chartWrap.clientWidth || window.innerWidth)));
+    const height = width < 480 ? 220 : 300;
+    const pad = { top: 18, right: width < 480 ? 12 : 18, bottom: 40, left: width < 480 ? 44 : 52 };
     const values = data.map((item) => Number(item.value));
     let low = Math.min(...values), high = Math.max(...values);
     const spread = high - low || Math.max(Math.abs(high) * 0.08, 1);
@@ -180,24 +202,45 @@
       svg.append(svgNode("line", { x1: pad.left, x2: width - pad.right, y1: tickY, y2: tickY, class: "chart-grid" }));
       svg.append(svgNode("text", { x: pad.left - 12, y: tickY + 4, "text-anchor": "end", class: "chart-axis" }, `${fmt(tickValue, 1)} ${unit}`));
     }
-    const indexLabels = [...new Set([0, Math.floor((data.length - 1) / 2), data.length - 1])];
-    for (const index of indexLabels) svg.append(svgNode("text", { x: x(index), y: height - 12, "text-anchor": index === 0 ? "start" : index === data.length - 1 ? "end" : "middle", class: "chart-axis" }, shortDate(data[index].date)));
     if (data.length > 1) {
       const path = data.map((item, index) => `${index === 0 ? "M" : "L"} ${x(index)} ${y(Number(item.value))}`).join(" ");
       svg.append(svgNode("path", { d: path, class: "chart-line" }));
     }
-    data.forEach((item, index) => svg.append(svgNode("circle", { cx: x(index), cy: y(Number(item.value)), r: data.length === 1 ? 6 : 4, class: "chart-point" })));
+    svg.append(svgNode("circle", { cx: x(data.length - 1), cy: y(Number(data[data.length - 1].value)), r: data.length === 1 ? 4 : 3.5, class: "chart-point" }));
+    const lastIndex = data.length - 1;
+    const candidateIndexes = width < 480
+      ? [...new Set([0, Math.floor(lastIndex / 2), lastIndex])]
+      : [...new Set([0, Math.floor(lastIndex / 3), Math.round(lastIndex * 2 / 3), lastIndex])];
+    const minimumGap = width < 480 ? 104 : 142;
+    const labelIndexes = [];
+    for (const index of candidateIndexes.sort((a, b) => x(a) - x(b))) {
+      const label = shortDate(data[index].date);
+      if (labelIndexes.some((selected) => shortDate(data[selected].date) === label)) continue;
+      if (labelIndexes.length && x(index) - x(labelIndexes[labelIndexes.length - 1]) < minimumGap) {
+        if (index === lastIndex) {
+          while (labelIndexes.length && x(index) - x(labelIndexes[labelIndexes.length - 1]) < minimumGap) labelIndexes.pop();
+          labelIndexes.push(index);
+        }
+        continue;
+      }
+      labelIndexes.push(index);
+    }
+    for (const index of labelIndexes) {
+      svg.append(svgNode("text", { x: x(index), y: height - 10, "text-anchor": index === 0 ? "start" : index === data.length - 1 ? "end" : "middle", class: "chart-axis" }, shortDate(data[index].date)));
+    }
     els.chartWrap.append(svg);
     if (data.length === 1) els.chartWrap.append(node("p", "chart-empty single-point", "Una sola captura: todavía no hay una tendencia que mostrar."));
   }
   function render(next) {
     state = next;
     const measurements = Array.isArray(next.measurements) ? next.measurements : [];
+    const packet = livePacket(next.status);
+    const provisional = Boolean(packet && !packet.load_removed && packet.stabilized === false);
     profileFromState(next.profile);
     connection(next.status);
     renderLatest(measurements, next.status);
-    renderCards(measurements);
-    renderAllMetrics(measurements[0]);
+    renderCards(measurements, next.status);
+    renderAllMetrics(provisional ? null : measurements[0]);
     renderHistory(measurements, next.status);
     renderChart(measurements);
     if (next.status?.phase === "error") setStatus(next.status.message || "La báscula ha indicado un error.", "error");
@@ -249,6 +292,11 @@
       await refresh(true);
     }
   });
+  window.addEventListener("resize", () => {
+    if (!state) return;
+    window.clearTimeout(chartResizeTimer);
+    chartResizeTimer = window.setTimeout(() => renderChart(state.measurements || []), 150);
+  }, { passive: true });
   refresh();
   window.setInterval(() => refresh(true), 2000);
 })();

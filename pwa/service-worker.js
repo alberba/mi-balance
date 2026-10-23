@@ -1,5 +1,5 @@
-const CACHE = "mi-balance-v9";
-const ASSETS = ["./", "./index.html", "./auth-client.js", "./data.js", "./app.js", "./style.css", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "mi-balance-v11";
+const ASSETS = ["./", "./index.html", "./auth-client.js", "./data.js", "./app.js", "./style.css", "./fonts/inter-var.woff2", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

@@ -247,7 +247,12 @@ class Handler(BaseHTTPRequestHandler):
             for row in rows:
                 writer.writerow([row["captured_at"], row["weight_kg"], row["impedance_ohm"], *[(row["metrics"] or {}).get(key, "") for key in metrics]])
             return self.send(output.getvalue().encode("utf-8-sig"), content_type="text/csv; charset=utf-8")
-        files = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"), "/style.css": ("style.css", "text/css")}
+        files = {
+            "/": ("index.html", "text/html"),
+            "/app.js": ("app.js", "text/javascript"),
+            "/style.css": ("style.css", "text/css"),
+            "/fonts/inter-var.woff2": ("fonts/inter-var.woff2", "font/woff2"),
+        }
         if path not in files:
             return self.send({"error": "No encontrado"}, 404)
         name, mime = files[path]

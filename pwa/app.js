@@ -4,6 +4,8 @@
     authScreen: $("#auth-screen"), appShell: $("#app-shell"), loginForm: $("#login-form"), authError: $("#auth-error"), passkeyLogin: $("#passkey-login"),
     dot: $("#connection-dot"), connectionLabel: $("#connection-label"), connectionButton: $("#connection-button"),
     status: $("#status-message"), weight: $("#latest-weight"), date: $("#latest-date"), captureState: $("#capture-state"),
+    homeChange: $("#home-change"), homeFat: $("#home-fat"), homeMuscle: $("#home-muscle"), homeWater: $("#home-water"), homeDateLabel: $("#home-date-label"),
+    homeRecent: $("#home-recent"), homeRecentEmpty: $("#home-recent-empty"),
     metricGrid: $("#all-metrics"), metricsDate: $("#metrics-date"), metricSummary: $("#metric-summary"),
     history: $("#history-rows"), historyEmpty: $("#history-empty"), historyCount: $("#history-count"), historySummary: $("#history-summary"),
     chartMetric: $("#chart-metric"), chartPeriod: $("#chart-period"), chartWrap: $("#chart-wrap"), chartSummary: $("#chart-summary"),
@@ -26,6 +28,8 @@
   let storageKey = CACHE_KEY;
   let currentUser = null;
   let pollTimer = null;
+  let lastMetricsKey = "";
+  let chartResizeTimer = 0;
 
   const fmt = (value, digits = 1) => Number.isFinite(Number(value))
     ? new Intl.NumberFormat("es-ES", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(Number(value))
@@ -75,14 +79,29 @@
   }
   function authMessage(error) {
     if (!error) return "No se pudo completar el acceso.";
-    return error.message || error.statusText || String(error);
+    const message = error.message || error.statusText || String(error);
+    if (/file not found|failed to fetch|load failed/i.test(message)) {
+      return "No se pudo comprobar la sesión. Repasa la conexión e inténtalo de nuevo.";
+    }
+    return message;
+  }
+  function setHeadingLevel(element, level) {
+    if (!element || element.tagName.toLowerCase() === level) return element;
+    const replacement = document.createElement(level);
+    for (const attribute of element.attributes) replacement.setAttribute(attribute.name, attribute.value);
+    replacement.append(...element.childNodes);
+    element.replaceWith(replacement);
+    return replacement;
   }
   function showAuth(message = "") {
     currentUser = null;
+    lastMetricsKey = "";
     if (pollTimer) window.clearInterval(pollTimer);
     pollTimer = null;
     els.appShell.hidden = true;
     els.authScreen.hidden = false;
+    setHeadingLevel($("#auth-title"), "h1");
+    document.querySelectorAll("#app-shell .page-heading > div > :is(h1, h2)").forEach((title) => setHeadingLevel(title, "h2"));
     els.authError.textContent = message;
   }
   function showApp(user) {
@@ -90,6 +109,9 @@
     els.authScreen.hidden = true;
     els.appShell.hidden = false;
     els.authError.textContent = "";
+    setHeadingLevel($("#auth-title"), "h2");
+    const activePanel = $('[role="tabpanel"]:not([hidden])');
+    activateTab(activePanel?.id.replace("panel-", "") || "inicio");
     els.accountEmail.textContent = user?.email || "";
   }
   function profileFromState(profile) {
@@ -102,8 +124,14 @@
   }
   function connection(status) {
     const running = Boolean(status?.running);
+    const phase = status?.phase;
+    const label = phase === "error"
+      ? "Error de conexión"
+      : running
+        ? phase === "measuring" ? "Recibiendo pesada" : phase === "scanning" ? "Buscando báscula" : "Báscula conectada"
+        : "Báscula desconectada";
     els.dot.classList.toggle("is-connected", running);
-    els.connectionLabel.textContent = running ? (status.message || "Báscula conectada") : (status?.message || "Báscula desconectada");
+    els.connectionLabel.textContent = label;
     els.connectionButton.textContent = running ? "Desconectar" : "Conectar";
     els.connectionButton.disabled = busy;
   }
@@ -158,22 +186,31 @@
     details.append(summary, content);
   }
   function renderMetrics(latest) {
+    const metricsKey = latest ? `${latest.id ?? latest.captured_at}:${JSON.stringify(latest.metrics || null)}` : "none";
+    if (metricsKey === lastMetricsKey && els.metricGrid.childElementCount) return;
+    const openEvidence = new Set([...els.metricGrid.querySelectorAll(".metric-card")]
+      .filter((card) => card.querySelector(".evidence-details")?.open)
+      .map((card) => card.dataset.metric));
     els.metricGrid.replaceChildren();
     els.metricsDate.textContent = latest ? `Última medición · ${shortDate(latest.captured_at)}` : "Sin mediciones guardadas";
     for (const [key, title, suffix, digits] of metricSpecs) {
       const entry = metricEntry(latest?.metrics, key);
       const card = node("article", "metric-card");
+      card.dataset.metric = key;
       card.append(node("h2", "metric-name", title));
       const value = node("p", "metric-value", metricText(entry.value, suffix, digits));
       card.append(value);
-      const badge = node("span", `range-badge${entry.range ? " has-range" : " no-range"}`, rangeLabel(entry.range));
+      const validatedRange = Boolean(entry.range && (entry.range.low != null || entry.range.high != null));
+      const badge = node("span", `range-badge${validatedRange ? " has-range" : " no-range"}`, rangeLabel(entry.range));
       card.append(badge);
       const details = node("details", "evidence-details");
       appendEvidence(details, entry.range, suffix);
+      details.open = openEvidence.has(key);
       card.append(details);
       els.metricGrid.append(card);
     }
     els.metricSummary.textContent = latest?.metrics ? "13 estimaciones disponibles" : "Sin estimaciones disponibles";
+    lastMetricsKey = metricsKey;
   }
   function livePacket(status) {
     const packet = status?.last_packet;
@@ -189,6 +226,34 @@
     if (!measurement?.metrics) return "Impedancia registrada · estimaciones no disponibles.";
     return "Lectura con impedancia · composición estimada.";
   }
+  function renderHomeComposition(metrics) {
+    const entries = [
+      [els.homeFat, "body_fat_percent", "%", 1],
+      [els.homeMuscle, "muscle_mass_kg", "kg", 1],
+      [els.homeWater, "water_percent", "%", 1],
+    ];
+    for (const [element, key, suffix, digits] of entries) {
+      element.textContent = metricText(metricEntry(metrics, key).value, suffix, digits);
+    }
+  }
+  function renderWeightChange(latest, previous) {
+    els.homeChange.classList.toggle("is-muted", !latest || !previous);
+    if (!latest || !previous) {
+      els.homeChange.textContent = "Sin comparación anterior";
+      return;
+    }
+    const change = Number(latest.weight_kg) - Number(previous.weight_kg);
+    if (!Number.isFinite(change)) {
+      els.homeChange.textContent = "Sin comparación anterior";
+      els.homeChange.classList.add("is-muted");
+      return;
+    }
+    if (Math.abs(change) < 0.05) {
+      els.homeChange.textContent = "Sin cambio frente a la pesada anterior";
+      return;
+    }
+    els.homeChange.textContent = `${fmt(Math.abs(change), 2)} kg ${change < 0 ? "menos" : "más"} que la pesada anterior`;
+  }
   function renderLatest(measurements, status) {
     const latest = measurements[0];
     const packet = livePacket(status);
@@ -197,20 +262,47 @@
       els.weight.textContent = fmt(provisionalWeight, 2);
       els.date.textContent = dateTime(packet.captured_at);
       els.captureState.textContent = captureDescription(null, status);
+      els.homeChange.textContent = "Lectura provisional";
+      els.homeChange.classList.add("is-muted");
+      els.homeDateLabel.textContent = "Ahora";
+      renderHomeComposition(null);
     } else if (!latest) {
       els.weight.textContent = "—";
       els.date.textContent = status?.phase === "error" ? "No se pudo completar la última pesada" : "Esperando una medición";
       els.captureState.textContent = "Conecta la báscula para guardar una pesada.";
+      renderWeightChange(null, null);
+      renderHomeComposition(null);
+      els.homeDateLabel.textContent = "Sin mediciones";
     } else {
       els.weight.textContent = fmt(latest.weight_kg, 2);
       els.date.textContent = dateTime(latest.captured_at);
       els.captureState.textContent = captureDescription(latest, status);
+      renderWeightChange(latest, measurements[1]);
+      renderHomeComposition(latest.metrics);
+      els.homeDateLabel.textContent = shortDate(latest.captured_at);
     }
     const count = measurements.length;
     $("#insight-copy").textContent = count
       ? `Tienes ${count} ${count === 1 ? "registro" : "registros"} guardados. Las estimaciones son orientativas y no constituyen un diagnóstico.`
       : "Las estimaciones de composición corporal son orientativas y no constituyen un diagnóstico.";
     els.historySummary.textContent = `${count} ${count === 1 ? "medición guardada" : "mediciones guardadas"}`;
+  }
+  function renderHomeRecent(measurements) {
+    els.homeRecent.replaceChildren();
+    const previous = measurements.slice(1, 4);
+    els.homeRecentEmpty.hidden = previous.length > 0;
+    previous.forEach((item, index) => {
+      const older = measurements[index + 2];
+      const row = node("div", "recent-row");
+      const reading = node("span", "recent-reading", `${fmt(item.weight_kg, 2)} kg`);
+      let change = "Sin comparación";
+      if (older && Number.isFinite(Number(item.weight_kg)) && Number.isFinite(Number(older.weight_kg))) {
+        const delta = Number(item.weight_kg) - Number(older.weight_kg);
+        change = Math.abs(delta) < 0.05 ? "Sin cambio" : `${fmt(Math.abs(delta), 2)} kg ${delta < 0 ? "menos" : "más"}`;
+      }
+      row.append(node("time", "", shortDate(item.captured_at)), reading, node("span", "recent-delta", change));
+      els.homeRecent.append(row);
+    });
   }
   function renderHistory(measurements) {
     els.history.replaceChildren();
@@ -246,12 +338,16 @@
     const labels = { weight_kg: ["Peso", "kg"], body_fat_percent: ["Grasa corporal", "%"], muscle_mass_kg: ["Masa muscular", "kg"], water_percent: ["Agua corporal", "%"] };
     const [name, unit] = labels[spec];
     els.chartWrap.replaceChildren();
-    els.chartSummary.textContent = data.length ? `${data.length} ${data.length === 1 ? "registro" : "registros"} de ${name.toLowerCase()}` : `Sin registros de ${name.toLowerCase()} en este periodo.`;
+    els.chartSummary.textContent = data.length
+      ? `${data.length} ${data.length === 1 ? "registro" : "registros"} de ${name.toLowerCase()} · ${fmt(data[0].value, 1)}–${fmt(data[data.length - 1].value, 1)} ${unit}`
+      : `Sin registros de ${name.toLowerCase()} en este periodo.`;
     if (!data.length) {
       els.chartWrap.append(node("p", "chart-empty", "Aquí aparecerá tu evolución cuando tengas mediciones."));
       return;
     }
-    const width = 720, height = 250, pad = { top: 18, right: 18, bottom: 38, left: 52 };
+    const width = Math.round(Math.max(260, Math.min(760, els.chartWrap.clientWidth || window.innerWidth)));
+    const height = width < 480 ? 210 : 250;
+    const pad = { top: 16, right: width < 480 ? 12 : 16, bottom: 38, left: width < 480 ? 42 : 48 };
     const values = data.map((item) => Number(item.value));
     let low = Math.min(...values), high = Math.max(...values);
     const spread = high - low || Math.max(Math.abs(high) * 0.08, 1);
@@ -262,12 +358,33 @@
     const svg = svgNode("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `Gráfica de ${name.toLowerCase()} en ${unit}; ${data.length} ${data.length === 1 ? "registro" : "registros"}.` });
     for (let i = 0; i <= 4; i++) {
       const tickY = pad.top + (height - pad.top - pad.bottom) * i / 4;
+      const tickValue = high - (high - low) * i / 4;
       svg.append(svgNode("line", { x1: pad.left, x2: width - pad.right, y1: tickY, y2: tickY, class: "chart-grid" }));
+      svg.append(svgNode("text", { x: pad.left - 10, y: tickY + 4, "text-anchor": "end", class: "chart-axis" }, fmt(tickValue, 1)));
     }
     if (data.length > 1) svg.append(svgNode("path", { d: data.map((item, index) => `${index === 0 ? "M" : "L"} ${x(index)} ${y(Number(item.value))}`).join(" "), class: "chart-line" }));
-    data.forEach((item, index) => svg.append(svgNode("circle", { cx: x(index), cy: y(Number(item.value)), r: data.length === 1 ? 6 : 4, class: "chart-point" })));
-    svg.append(svgNode("text", { x: pad.left, y: height - 8, class: "chart-axis" }, shortDate(data[0].date)));
-    if (data.length > 1) svg.append(svgNode("text", { x: width - pad.right, y: height - 8, "text-anchor": "end", class: "chart-axis" }, shortDate(data[data.length - 1].date)));
+    svg.append(svgNode("circle", { cx: x(data.length - 1), cy: y(Number(data[data.length - 1].value)), r: data.length === 1 ? 4 : 3.5, class: "chart-point" }));
+    const lastIndex = data.length - 1;
+    const candidateIndexes = width < 480
+      ? [...new Set([0, Math.floor(lastIndex / 2), lastIndex])]
+      : [...new Set([0, Math.floor(lastIndex / 3), Math.round(lastIndex * 2 / 3), lastIndex])];
+    const minimumGap = width < 480 ? 104 : 142;
+    const labelIndexes = [];
+    for (const index of candidateIndexes.sort((a, b) => x(a) - x(b))) {
+      const label = shortDate(data[index].date);
+      if (labelIndexes.some((selected) => shortDate(data[selected].date) === label)) continue;
+      if (labelIndexes.length && x(index) - x(labelIndexes[labelIndexes.length - 1]) < minimumGap) {
+        if (index === lastIndex) {
+          while (labelIndexes.length && x(index) - x(labelIndexes[labelIndexes.length - 1]) < minimumGap) labelIndexes.pop();
+          labelIndexes.push(index);
+        }
+        continue;
+      }
+      labelIndexes.push(index);
+    }
+    for (const index of labelIndexes) {
+      svg.append(svgNode("text", { x: x(index), y: height - 8, "text-anchor": index === 0 ? "start" : index === data.length - 1 ? "end" : "middle", class: "chart-axis" }, shortDate(data[index].date)));
+    }
     els.chartWrap.append(svg);
   }
   function render(next) {
@@ -278,6 +395,7 @@
     profileFromState(next.profile);
     connection(next.status);
     renderLatest(measurements, next.status);
+    renderHomeRecent(measurements);
     renderMetrics(measurements[0]);
     renderHistory(measurements);
     renderChart(measurements);
@@ -396,6 +514,12 @@
       item.tabIndex = active ? 0 : -1;
     });
     document.querySelectorAll('[role="tabpanel"]').forEach((panel) => { panel.hidden = panel.id !== `panel-${name}`; });
+    document.querySelectorAll("#app-shell .page-heading > div > :is(h1, h2)").forEach((title) => {
+      const active = title.closest('[role="tabpanel"]')?.id === `panel-${name}`;
+      setHeadingLevel(title, active ? "h1" : "h2");
+    });
+    if (name === "historial" && state) requestAnimationFrame(() => renderChart(state.measurements || []));
+    window.scrollTo(0, 0);
     if (focus) tab.focus();
     if (history.replaceState) history.replaceState(null, "", `#${name}`);
   }
@@ -478,7 +602,7 @@
     if (cached) render(JSON.parse(cached));
   } catch { /* La primera lectura seguirá cargando el estado vigente. */ }
   const initialTab = location.hash.slice(1);
-  if (["inicio", "metricas", "historial"].includes(initialTab)) activateTab(initialTab);
+  activateTab(["inicio", "metricas", "historial"].includes(initialTab) ? initialTab : "inicio");
   checkSession();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("./service-worker.js").catch(() => { /* La interfaz sigue funcionando sin caché offline. */ });
@@ -486,4 +610,9 @@
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && currentUser && pwa()) pwa().sync().then(() => refresh(true)).catch(() => {});
   });
+  window.addEventListener("resize", () => {
+    if (!state || $("#panel-historial").hidden) return;
+    window.clearTimeout(chartResizeTimer);
+    chartResizeTimer = window.setTimeout(() => renderChart(state.measurements || []), 150);
+  }, { passive: true });
 })();

@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f3f2eb">
-  <meta name="description" content="Tu historial de peso y composición corporal estimada, guardado privado en este dispositivo.">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Tu historial privado de peso y composición corporal estimada.">
   <title>Mi balance</title>
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <link rel="stylesheet" href="./style.css">
   <script src="./auth-client.js" defer></script>
@@ -16,125 +17,175 @@
 </head>
 <body>
   <main class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
-    <section class="auth-card">
-      <div class="auth-brand"><span class="brand-mark" aria-hidden="true">m</span><span>mi balance</span></div>
-      <p class="eyebrow">Tu espacio privado</p>
-      <h1 id="auth-title">Vuelve a tu <em>balance.</em></h1>
-      <p class="auth-copy">Entra para cargar tu historial y conectar la báscula. Tus datos quedan ligados a tu cuenta.</p>
-      <form id="login-form" class="auth-form">
-        <label>Correo electrónico<input name="email" type="email" autocomplete="username" required></label>
-        <label>Contraseña<input name="password" type="password" autocomplete="current-password" minlength="12" required></label>
-        <button class="primary-button auth-submit" type="submit">Entrar</button>
-      </form>
-      <div class="auth-divider"><span>o</span></div>
-      <button class="passkey-button" id="passkey-login" type="button"><span aria-hidden="true">◉</span> Entrar con passkey</button>
-      <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
-      <p class="auth-footnote">Acceso privado. La cuenta se crea desde el servidor; aquí sólo se añaden passkeys tras iniciar sesión.</p>
-    </section>
-  </main>
-
-  <div id="app-shell" hidden>
-  <header class="topbar">
-    <a class="brand" href="#inicio" aria-label="Mi balance, inicio" data-go="inicio">
-      <span class="brand-mark" aria-hidden="true">m</span>
-      <span>mi balance</span>
-    </a>
-    <div class="connection" aria-live="polite">
-      <span class="connection-dot" id="connection-dot" aria-hidden="true"></span>
-      <span class="connection-label" id="connection-label">Comprobando báscula</span>
-      <button class="connect-button" id="connection-button" type="button" disabled>Conectar</button>
-    </div>
-  </header>
-
-  <main class="page">
-    <section id="panel-inicio" class="view" role="tabpanel" aria-labelledby="tab-inicio" tabindex="0">
-      <div class="welcome-row">
-        <div>
-          <p class="eyebrow">Tu espacio de salud</p>
-          <h1>Un poco más de <em>contexto.</em></h1>
+    <section class="auth-sheet">
+      <div class="auth-intro">
+        <div class="auth-brand">Mi balance</div>
+        <div class="auth-lead">
+          <p class="auth-context">Registro privado de composición corporal</p>
+          <h1 id="auth-title">Tu balance, en privado.</h1>
+          <p class="auth-copy">Peso, composición estimada y evolución desde tu báscula. Los datos quedan ligados a tu cuenta y se guardan en tu servidor.</p>
+          <dl class="auth-facts">
+            <div><dt>Última lectura</dt><dd>Peso e impedancia de la báscula</dd></div>
+            <div><dt>Composición</dt><dd>13 estimaciones orientativas</dd></div>
+            <div><dt>Historial</dt><dd>Consulta y exportación en CSV</dd></div>
+          </dl>
         </div>
-        <span class="today-mark" aria-hidden="true">◎</span>
-      </div>
-      <div class="status-line" id="status-message" role="status" aria-live="polite">
-        <span class="status-symbol" aria-hidden="true">·</span><span>Conectando con Mi Balance…</span>
+        <p class="auth-privacy">Las estimaciones no son mediciones clínicas. Tu historial no se comparte con terceros.</p>
       </div>
 
-      <section class="weight-card" aria-labelledby="latest-heading">
-        <div class="weight-topline">
-          <div><p class="eyebrow eyebrow-light">Última medición</p><h2 class="sr-only" id="latest-heading">Última medición</h2></div>
-          <span class="weight-orbit" aria-hidden="true">↗</span>
+      <section class="auth-card" aria-labelledby="auth-form-title">
+        <div class="auth-card-heading">
+          <h2 id="auth-form-title">Entrar</h2>
+          <p>Accede con la cuenta que creaste en el servidor.</p>
         </div>
-        <div class="weight-line"><span class="weight-value" id="latest-weight">—</span><span class="weight-unit">kg</span></div>
-        <p class="latest-date" id="latest-date">Esperando una medición</p>
-        <p class="capture-state" id="capture-state"></p>
-      </section>
-
-      <section class="insight-card" aria-labelledby="insight-title">
-        <span class="insight-icon" aria-hidden="true">✳</span>
-        <div><p class="eyebrow">Una lectura tranquila</p><h2 id="insight-title">Cada dato suma contexto.</h2><p id="insight-copy">Las estimaciones de composición corporal son orientativas y no constituyen un diagnóstico.</p></div>
-      </section>
-
-      <div class="home-grid">
-        <button class="shortcut-card" type="button" data-go="metricas">
-          <span class="shortcut-icon" aria-hidden="true">◌</span><span><strong>Composición corporal</strong><small id="metric-summary">Ver tus estimaciones</small></span><span class="shortcut-arrow" aria-hidden="true">↗</span>
-        </button>
-        <button class="shortcut-card" type="button" data-go="historial">
-          <span class="shortcut-icon" aria-hidden="true">⌁</span><span><strong>Tu recorrido</strong><small id="history-summary">Todavía sin mediciones</small></span><span class="shortcut-arrow" aria-hidden="true">↗</span>
-        </button>
-      </div>
-
-      <details class="profile-card" id="profile-details">
-        <summary><span class="profile-symbol" aria-hidden="true">＋</span><span class="profile-title"><small>Personalización</small><strong>Tu perfil</strong></span><span class="summary-action">Editar <span aria-hidden="true">↗</span></span></summary>
-        <form id="profile-form">
-          <div class="profile-fields">
-            <label>Altura <span class="input-with-unit"><input name="height_cm" type="number" min="100" max="220" step="0.1" required inputmode="decimal"><span>cm</span></span></label>
-            <label>Fecha de nacimiento<input name="birthdate" type="date" required></label>
-            <label>Sexo para el cálculo<select name="sex" required><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
-          </div>
-          <div class="profile-footer"><p>El perfil ayuda a calcular las estimaciones. Se conserva en este dispositivo.</p><button class="primary-button" type="submit">Guardar cambios</button></div>
+        <form id="login-form" class="auth-form">
+          <label for="login-email">Correo electrónico</label>
+          <input id="login-email" name="email" type="email" autocomplete="username" required>
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" minlength="12" required>
+          <button class="primary-button auth-submit" type="submit">Entrar</button>
         </form>
-        <div class="account-panel">
-          <div><span class="account-label">Cuenta</span><strong id="account-email"></strong></div>
-          <div class="account-actions">
-            <button class="account-button" id="add-passkey" type="button">Añadir passkey</button>
-            <button class="account-button account-button-quiet" id="sign-out" type="button">Cerrar sesión</button>
-          </div>
-          <p class="account-status" id="account-status" aria-live="polite"></p>
-        </div>
-      </details>
-      <p class="closing-note">Mediciones para observar, nunca para juzgar.</p>
-    </section>
-
-    <section id="panel-metricas" class="view" role="tabpanel" aria-labelledby="tab-metricas" tabindex="0" hidden>
-      <header class="view-heading"><p class="eyebrow">Composición corporal</p><h1>Tus métricas,<br><em>con contexto.</em></h1><p class="view-description">Estimaciones basadas en la lectura de la báscula y tu perfil. Orientativas, no diagnósticas.</p></header>
-      <div class="metrics-meta"><span id="metrics-date">Última medición · —</span><span class="meta-dot" aria-hidden="true"></span><span>13 estimaciones</span></div>
-      <div class="metric-grid" id="all-metrics" aria-live="polite"></div>
-      <aside class="science-note"><span class="science-mark" aria-hidden="true">i</span><div><strong>Cómo leer estos datos</strong><p>Una báscula doméstica estima la composición corporal a partir de peso e impedancia. Los resultados pueden variar y no sustituyen una valoración profesional. Los rangos y su evidencia solo aparecen cuando están disponibles para esa métrica.</p></div></aside>
-    </section>
-
-    <section id="panel-historial" class="view" role="tabpanel" aria-labelledby="tab-historial" tabindex="0" hidden>
-      <header class="view-heading history-heading"><div><p class="eyebrow">A lo largo del tiempo</p><h1>Tu <em>recorrido.</em></h1><p class="view-description">Cada registro es una observación, sin prisas ni juicios.</p></div><button class="export-button" id="export-button" type="button"><span aria-hidden="true">↓</span> Exportar CSV</button></header>
-      <section class="trend-card" aria-labelledby="chart-heading">
-        <div class="trend-top"><div><p class="eyebrow">Tendencia personal</p><h2 id="chart-heading">Con el paso del tiempo</h2></div><span class="trend-glyph" aria-hidden="true">⌁</span></div>
-        <div class="chart-controls">
-          <label>Indicador<select id="chart-metric" aria-label="Indicador de la gráfica"><option value="weight_kg">Peso</option><option value="body_fat_percent">Grasa corporal</option><option value="muscle_mass_kg">Masa muscular</option><option value="water_percent">Agua corporal</option></select></label>
-          <label>Periodo<select id="chart-period" aria-label="Periodo de la gráfica"><option value="30">30 días</option><option value="90">90 días</option><option value="all">Todo</option></select></label>
-        </div>
-        <p class="chart-summary" id="chart-summary" aria-live="polite"></p><div class="chart-wrap" id="chart-wrap"></div>
-      </section>
-      <section class="history-block" aria-labelledby="history-heading">
-        <div class="list-heading"><div><p class="eyebrow">Registros guardados</p><h2 id="history-heading">Historial</h2></div><span class="history-count" id="history-count">0 mediciones</span></div>
-        <div class="history-list" id="history-rows"></div>
-        <p class="empty-state" id="history-empty" hidden>Aún no hay mediciones guardadas.<br>Conecta la báscula para registrar la primera.</p>
+        <div class="auth-divider"><span>o</span></div>
+        <button class="passkey-button" id="passkey-login" type="button">Entrar con passkey</button>
+        <p class="auth-error" id="auth-error" role="alert" aria-live="polite"></p>
+        <p class="auth-footnote">La cuenta se crea desde el servidor. Después de entrar puedes añadir passkeys a este dispositivo.</p>
       </section>
     </section>
   </main>
 
-  <nav class="bottom-nav" aria-label="Navegación principal" role="tablist">
-    <button id="tab-inicio" class="nav-tab is-active" type="button" role="tab" aria-controls="panel-inicio" aria-selected="true" tabindex="0" data-tab="inicio"><span class="nav-icon" aria-hidden="true">⌂</span><span>Inicio</span></button>
-    <button id="tab-metricas" class="nav-tab" type="button" role="tab" aria-controls="panel-metricas" aria-selected="false" tabindex="-1" data-tab="metricas"><span class="nav-icon" aria-hidden="true">◉</span><span>Métricas</span></button>
-    <button id="tab-historial" class="nav-tab" type="button" role="tab" aria-controls="panel-historial" aria-selected="false" tabindex="-1" data-tab="historial"><span class="nav-icon" aria-hidden="true">⌁</span><span>Historial</span></button>
-  </nav>
+  <div id="app-shell" class="app-shell" hidden>
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Mi balance, inicio" data-go="inicio"><span class="brand-copy"><strong>Mi balance</strong><small>Registro privado</small></span></a>
+      <nav class="bottom-nav" aria-label="Navegación principal" role="tablist">
+        <button id="tab-inicio" class="nav-tab is-active" type="button" role="tab" aria-controls="panel-inicio" aria-selected="true" tabindex="0" data-tab="inicio"><span>Resumen</span></button>
+        <button id="tab-metricas" class="nav-tab" type="button" role="tab" aria-controls="panel-metricas" aria-selected="false" tabindex="-1" data-tab="metricas"><span>Composición</span></button>
+        <button id="tab-historial" class="nav-tab" type="button" role="tab" aria-controls="panel-historial" aria-selected="false" tabindex="-1" data-tab="historial"><span>Historial</span></button>
+      </nav>
+      <div class="connection" aria-live="polite">
+        <span class="connection-dot" id="connection-dot" aria-hidden="true"></span>
+        <span class="connection-label" id="connection-label">Comprobando báscula</span>
+        <button class="connect-button" id="connection-button" type="button" disabled>Conectar</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <section id="panel-inicio" class="view" role="tabpanel" aria-labelledby="tab-inicio" tabindex="0">
+        <header class="page-heading">
+          <div>
+            <h1>Resumen</h1>
+            <p class="page-subtitle" id="history-summary">Última lectura y estado de la báscula.</p>
+          </div>
+          <span class="today-mark" id="home-date-label">Sin mediciones</span>
+        </header>
+        <div class="status-line" id="status-message" role="status" aria-live="polite">
+          <span class="status-symbol" aria-hidden="true"></span><span>Conectando con Mi Balance…</span>
+        </div>
+
+        <section class="measurement-panel" aria-labelledby="latest-heading">
+          <div class="measurement-main">
+            <p class="panel-label">Última pesada</p>
+            <h2 class="sr-only" id="latest-heading">Última pesada</h2>
+            <div class="weight-line"><span class="weight-value" id="latest-weight">—</span><span class="weight-unit">kg</span></div>
+            <p class="weight-delta" id="home-change">Sin comparación anterior</p>
+            <p class="latest-date" id="latest-date">Esperando una medición</p>
+            <p class="capture-state" id="capture-state"></p>
+          </div>
+          <div class="measurement-aside">
+            <div class="composition-strip" aria-label="Composición de la última pesada">
+              <div><span>Grasa</span><strong id="home-fat">—</strong></div>
+              <div><span>Músculo</span><strong id="home-muscle">—</strong></div>
+              <div><span>Agua</span><strong id="home-water">—</strong></div>
+            </div>
+            <button class="text-action" type="button" data-go="metricas">Ver composición</button>
+          </div>
+        </section>
+
+        <div class="home-grid">
+          <section class="home-note" aria-labelledby="insight-title">
+            <h2 id="insight-title">Cómo leer tus datos</h2>
+            <p id="insight-copy">Las estimaciones de composición corporal son orientativas y no constituyen un diagnóstico.</p>
+          </section>
+
+          <details class="profile-card" id="profile-details">
+            <summary>
+              <span class="profile-title"><strong>Perfil de cálculo</strong><small>Altura, edad y sexo para las estimaciones</small></span>
+              <span class="summary-action">Editar <span aria-hidden="true">+</span></span>
+            </summary>
+            <form id="profile-form">
+              <div class="profile-fields">
+                <label for="profile-height"><span>Altura</span><span class="input-with-unit"><input id="profile-height" name="height_cm" type="number" min="100" max="220" step="0.1" required inputmode="decimal"><span>cm</span></span></label>
+                <label for="profile-birthdate"><span>Fecha de nacimiento</span><input id="profile-birthdate" name="birthdate" type="date" required></label>
+                <label for="profile-sex"><span>Sexo para el cálculo</span><select id="profile-sex" name="sex" required><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
+              </div>
+              <div class="profile-footer"><p>Los cambios se aplican a futuras pesadas. El perfil se conserva en este dispositivo.</p><button class="primary-button" type="submit">Guardar cambios</button></div>
+            </form>
+            <div class="account-panel">
+              <div><span class="account-label">Cuenta</span><strong id="account-email"></strong></div>
+              <div class="account-actions">
+                <button class="account-button" id="add-passkey" type="button">Añadir passkey</button>
+                <button class="account-button account-button-quiet" id="sign-out" type="button">Cerrar sesión</button>
+              </div>
+              <p class="account-status" id="account-status" aria-live="polite"></p>
+            </div>
+          </details>
+        </div>
+
+        <section class="recent-readings" aria-labelledby="recent-title">
+          <div class="list-heading">
+            <h2 id="recent-title">Lecturas anteriores</h2>
+            <button class="text-action" type="button" data-go="historial">Ver historial</button>
+          </div>
+          <div class="recent-list" id="home-recent"></div>
+          <p class="empty-state compact" id="home-recent-empty">Aún no hay lecturas anteriores.</p>
+        </section>
+      </section>
+
+      <section id="panel-metricas" class="view" role="tabpanel" aria-labelledby="tab-metricas" tabindex="0" hidden>
+        <header class="page-heading">
+          <div><h1>Composición</h1><p class="page-subtitle">Estimaciones de la última lectura, con su contexto y su fuente.</p></div>
+          <p class="page-meta" id="metrics-date">Última medición · —</p>
+        </header>
+        <p class="section-meta"><span id="metric-summary">Sin estimaciones disponibles</span><span>Cálculos orientativos</span></p>
+        <div class="metric-grid" id="all-metrics" aria-live="polite"></div>
+        <aside class="science-note" aria-labelledby="science-title">
+          <h2 id="science-title">Cómo leer estos datos</h2>
+          <p>Una báscula doméstica estima la composición corporal a partir de peso e impedancia. Los resultados pueden variar y no sustituyen una valoración profesional. Los rangos y su evidencia aparecen sólo cuando están disponibles para esa métrica.</p>
+        </aside>
+      </section>
+
+      <section id="panel-historial" class="view" role="tabpanel" aria-labelledby="tab-historial" tabindex="0" hidden>
+        <header class="page-heading history-heading">
+          <div><h1>Historial</h1><p class="page-subtitle">Cada registro es una observación, sin prisas ni juicios.</p></div>
+          <button class="export-button" id="export-button" type="button">Exportar CSV</button>
+        </header>
+        <section class="trend-card" aria-labelledby="chart-heading">
+          <div class="trend-top">
+            <div><h2 id="chart-heading">Evolución</h2><p class="panel-label">Una serie por indicador</p></div>
+            <div class="chart-controls">
+              <label for="chart-metric">Indicador</label>
+              <select id="chart-metric"><option value="weight_kg">Peso</option><option value="body_fat_percent">Grasa corporal</option><option value="muscle_mass_kg">Masa muscular</option><option value="water_percent">Agua corporal</option></select>
+              <label for="chart-period">Periodo</label>
+              <select id="chart-period"><option value="30">30 días</option><option value="90">90 días</option><option value="all">Todo</option></select>
+            </div>
+          </div>
+          <p class="chart-summary" id="chart-summary" aria-live="polite"></p>
+          <div class="chart-wrap" id="chart-wrap"></div>
+        </section>
+        <section class="history-block" aria-labelledby="history-heading">
+          <div class="list-heading"><h2 id="history-heading">Registros</h2><span class="history-count" id="history-count">0 mediciones</span></div>
+          <div class="history-list" id="history-rows"></div>
+          <p class="empty-state" id="history-empty" hidden>Aún no hay mediciones guardadas. Conecta la báscula para registrar la primera.</p>
+        </section>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div class="app-footer-inner">
+        <div><strong>Mi balance</strong><p>Mediciones para observar, nunca para juzgar.</p></div>
+        <p>Registro privado · Tus datos se guardan en tu servidor.</p>
+      </div>
+    </footer>
+
   </div>
 </body>
 </html>

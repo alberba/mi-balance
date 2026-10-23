@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f3f1e8">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#ffffff">
   <title>Mi balance</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/" aria-label="Mi balance, inicio">
-      <span class="brand-mark" aria-hidden="true">m.</span>
-      <span>Mi balance</span>
-    </a>
+    <a class="brand" href="/" aria-label="Mi balance, inicio"><span class="brand-copy"><strong>Mi balance</strong><small>Registro privado</small></span></a>
     <div class="connection" aria-live="polite">
       <span class="connection-dot" id="connection-dot" aria-hidden="true"></span>
       <span class="connection-label" id="connection-label">Consultando báscula</span>
@@ -22,44 +20,41 @@
   </header>
 
   <main class="page">
-    <section class="intro" aria-labelledby="page-title">
+    <header class="page-heading">
       <div>
-        <p class="eyebrow">Tu registro personal</p>
-        <h1 id="page-title">Un balance, <em>a tu ritmo.</em></h1>
-        <p class="intro-copy">Mediciones reales de tu báscula, guardadas con calma y a lo largo del tiempo.</p>
+        <h1 id="page-title">Resumen</h1>
+        <p class="page-subtitle" id="page-summary">Peso y composición de la última pesada.</p>
       </div>
-      <a class="export-link" href="/api/export.csv" download>Descargar historial <span aria-hidden="true">↗</span></a>
-    </section>
+      <a class="export-link" href="/api/export.csv" download>Descargar historial</a>
+    </header>
 
     <div class="notice" id="status-message" role="status" aria-live="polite">Conectando con Mi Balance…</div>
 
     <section class="latest panel" aria-labelledby="latest-heading">
       <div class="latest-main">
-        <p class="eyebrow" id="latest-kicker">Última pesada</p>
+        <p class="panel-label">Última pesada</p>
         <h2 class="sr-only" id="latest-heading">Última pesada</h2>
         <div class="weight-line"><span class="weight-value" id="latest-weight">—</span><span class="weight-unit">kg</span></div>
         <p class="latest-date" id="latest-date">Esperando una medición</p>
         <p class="capture-state" id="capture-state"></p>
       </div>
       <div class="latest-aside">
-        <span class="aside-mark" aria-hidden="true">↗</span>
-        <p>Los cambios se entienden mejor con tiempo. Cada pesada suma contexto, no una nota.</p>
+        <div class="aside-heading"><h2>Composición</h2><span id="composition-date">Última lectura</span></div>
+        <div class="metric-cards" id="metric-cards"></div>
       </div>
     </section>
 
     <section class="metrics-section" aria-labelledby="metrics-heading">
       <div class="section-heading">
-        <div><p class="eyebrow">Composición estimada</p><h2 id="metrics-heading">Tu cuerpo, en contexto</h2></div>
-        <p class="section-note">Cálculos orientativos a partir de peso, impedancia y perfil.</p>
+        <div><h2 id="metrics-heading">Todas las estimaciones</h2><p class="section-note">Cálculos orientativos a partir de peso, impedancia y perfil.</p></div>
       </div>
-      <div class="metric-cards" id="metric-cards"></div>
       <details class="metric-details" id="metric-details">
-        <summary>Ver todas las estimaciones <span aria-hidden="true">＋</span></summary>
+        <summary>Mostrar todas las estimaciones <span aria-hidden="true">+</span></summary>
         <div class="details-content">
           <div class="table-wrap">
             <table class="metric-table">
               <caption class="sr-only">Todas las métricas estimadas de la última pesada</caption>
-              <thead><tr><th scope="col">Métrica</th><th scope="col">Resultado</th></tr></thead>
+              <thead><tr><th scope="col">Métrica</th><th scope="col" class="numeric">Resultado</th></tr></thead>
               <tbody id="all-metrics"></tbody>
             </table>
           </div>
@@ -70,15 +65,15 @@
 
     <section class="chart-section panel" aria-labelledby="chart-heading">
       <div class="section-heading chart-heading">
-        <div><p class="eyebrow">Tendencia</p><h2 id="chart-heading">Lo que cambia, poco a poco</h2></div>
+        <div><h2 id="chart-heading">Evolución</h2><p class="section-note">Una serie por indicador y periodo.</p></div>
         <div class="chart-controls">
-          <label>Indicador<select id="chart-metric" aria-label="Indicador de la gráfica">
+          <label for="chart-metric">Indicador<select id="chart-metric">
             <option value="weight_kg">Peso</option>
             <option value="body_fat_percent">Grasa corporal</option>
             <option value="muscle_mass_kg">Masa muscular</option>
             <option value="water_percent">Agua corporal</option>
           </select></label>
-          <label>Periodo<select id="chart-period" aria-label="Periodo de la gráfica">
+          <label for="chart-period">Periodo<select id="chart-period">
             <option value="30">30 días</option><option value="90">90 días</option><option value="all">Todo</option>
           </select></label>
         </div>
@@ -89,34 +84,35 @@
 
     <section class="history-section" aria-labelledby="history-heading">
       <div class="section-heading">
-        <div><p class="eyebrow">Todas tus capturas</p><h2 id="history-heading">Historial</h2></div>
+        <div><h2 id="history-heading">Historial</h2><p class="section-note">Registros guardados en este Mac.</p></div>
         <span class="history-count" id="history-count">0 mediciones</span>
       </div>
-      <div class="panel history-panel">
-        <div class="table-wrap">
-          <table class="history-table">
-            <caption class="sr-only">Historial de pesadas</caption>
-            <thead><tr><th scope="col">Fecha</th><th scope="col">Peso</th><th scope="col">Grasa</th><th scope="col">Músculo</th><th scope="col">Agua</th><th scope="col">Lectura</th></tr></thead>
-            <tbody id="history-rows"></tbody>
-          </table>
-        </div>
-        <p class="empty-state" id="history-empty" hidden>Aún no hay pesadas guardadas. Conecta la báscula y completa una medición.</p>
-      </div>
+      <div class="history-list" id="history-rows"></div>
+      <p class="empty-state" id="history-empty" hidden>Aún no hay pesadas guardadas. Conecta la báscula y completa una medición.</p>
     </section>
 
     <details class="profile panel" id="profile-details">
-      <summary><span><span class="eyebrow">Ajustes</span><strong>Tu perfil</strong></span><span class="summary-action">Editar <span aria-hidden="true">＋</span></span></summary>
+      <summary>
+        <span class="profile-title"><strong>Perfil de cálculo</strong><small>Altura, fecha de nacimiento y sexo</small></span>
+        <span class="summary-action">Editar <span aria-hidden="true">+</span></span>
+      </summary>
       <form id="profile-form">
         <div class="profile-fields">
-          <label>Altura <span class="input-with-unit"><input name="height_cm" type="number" min="100" max="220" step="0.1" required inputmode="numeric"><span>cm</span></span></label>
-          <label>Fecha de nacimiento<input name="birthdate" type="date" required></label>
-          <label>Sexo para el cálculo<select name="sex" required><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
+          <label for="profile-height"><span>Altura</span><span class="input-with-unit"><input id="profile-height" name="height_cm" type="number" min="100" max="220" step="0.1" required inputmode="decimal"><span>cm</span></span></label>
+          <label for="profile-birthdate"><span>Fecha de nacimiento</span><input id="profile-birthdate" name="birthdate" type="date" required></label>
+          <label for="profile-sex"><span>Sexo para el cálculo</span><select id="profile-sex" name="sex" required><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
         </div>
         <div class="profile-footer"><p>Los cambios se aplican a futuras pesadas. Tu perfil y el historial se guardan sólo en este Mac.</p><button class="button" type="submit">Guardar perfil</button></div>
       </form>
     </details>
 
-    <footer><span>Mi balance</span><span>Mediciones para observar, no para juzgar.</span></footer>
   </main>
+
+  <footer class="app-footer">
+    <div class="app-footer-inner">
+      <div><strong>Mi balance</strong><p>Mediciones para observar, nunca para juzgar.</p></div>
+      <p>Registro privado · Tus datos se guardan en este Mac.</p>
+    </div>
+  </footer>
 </body>
 </html>
